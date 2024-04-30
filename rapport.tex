@@ -1,6 +1,9 @@
 \documentclass{report}
 
+\usepackage{graphicx}
 \usepackage{indentfirst}
+\usepackage{listings}
+
 \title{Rapport du projet 2 : ULBMP}
 \author{LI Min-Tchun}
 \date{12/05/2024}
@@ -13,13 +16,43 @@
 \chapter{Introduction}
 Pour le deuxième projet du cours INFO-F-106, nous avons dû implémenter un compresseur d'image appelé ULBMP, basé sur le format BMP, développé par Microsoft dans les années 80.
 
-Afin de pouvoir venir à bout de ce projet, il est demandé d'importer le module \textbf{Pyside6} afin de pouvoir créer un interface grahpique pour l'utilisateur. Il est donc important de lire la documentation de ce module afin de pouvoir l'utiliser correctement.
+Afin de pouvoir venir à bout de ce projet, il est demandé d'importer le module \textit{Pyside6} afin de pouvoir créer un interface grahpique pour l'utilisateur. Il est donc important de lire la documentation de ce module afin de pouvoir l'utiliser correctement.
 
-De plus, il est fondamental de maitriser la manipulation de fichier, bits (notamment le \textit{shifting} et le \textit{masking}), ainsi que la compréhension de la représentation binaire et hexadécimal.
+De plus, il est fondamental de maitriser la manipulation de fichier, de bits (notamment le shifting et le masking), ainsi que la compréhension de la représen-tation binaire et hexadécimal.
 
-Concernant la représentation binaire et hexadécimal, il était recommandé d'utiliser le programme \textbf{hexdump} à exécuter dans le terminal afin de pouvoir visualiser les données hexadécimale.
-\chapter{ULBMP 1.0}
-Ceci est le chapitre 1.
+En effet, comme nous devons utiliser des pixels, il est important de comprendre que ces derniers sont composées de 3 valeurs : Rouge, Vert, Bleu (RVB ou RGB en anglais). Chacune de ces valeurs est codée sur 8 bits, ce qui signifie que chaque valeur peut prendre $2^8 = 256$ valeurs différentes.
+
+
+Il était donc utile d'utiliser le programme \textbf{hexdump}, à exécuter dans le terminal afin de pouvoir visualiser les données hexadécimale.
+
+Cependant, une question se pose : comment peut-on représenter une image en format numérique ou bien comment peut-on compresser une image ? Afin de résoudre ce problème, on va procéder comme suit, on va créer une classe \textit{Decoder} et \textit{Encoder}. 
+
+Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (on définiera plus tard plus précisemment ce que c'est).  
+
+Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les bytes correspondants aux valeurs RGB de chaque pixel.
+
+Il est important de notifier qu'il y a plusieurs version du compresseur d'image. Cela signifie que le header (ce qui se trouve à chaque début de fichier pour reconnaitre le format du fichier) doit être adapté à chaque version.
+
+
+\chapter{Initialisation}
+Comme cité dans l'introduction, les classes \textit{Decoder} et \textit{Encoder} nécessiteent une image, définie par la classe \textit{Image}. Cette classe contient les attributs suivants : la largeur, la hauteur de l'image et les pixels qui la constitue. Ces derniers sont également définis à partir d'une classe, \textit{Pixel} qui contient les attributs suivants : la valeur de rouge, de vert et de bleu. 
+
+Bien évidemment, certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction __getitem__ permet de récupérer un pixel à partir de ses coordonnées (x, y).
+\begin{lstlisting}
+def __getitem__(self, pos: tuple[int, int]):
+        """
+        Surcharge l'opérateur [] en lecture
+        Lance une erreur si pos n'est pas une position valide dans l'image.
+        """
+        x = pos[0]
+        y = pos[1]
+        if not (x <= self.w and y <= self.h):
+            raise IndexError("Il n'y a pas assez de pixels pour remplir l'image.")
+        return self.img[y * self.w + x]
+
+\end{lstlisting}
+
+
 
 \chapter{ULBMP 2.0}
 Ceci est le chapitre 2.
