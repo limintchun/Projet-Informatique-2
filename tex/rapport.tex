@@ -1,19 +1,35 @@
-\documentclass{report}
+\documentclass[utf8]{article}
 
+\usepackage[utf8]{inputenc}
+
+\usepackage[parfill]{parskip}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
 \usepackage{graphicx}
-\usepackage{indentfirst}
-\usepackage{listings}
+\usepackage{float}
+\usepackage{listingsutf8}
+
+\usepackage{fullpage}
+
 
 \title{Rapport du projet 2 : ULBMP}
 \author{LI Min-Tchun}
 \date{12/05/2024}
 
-
 \begin{document}
-	\maketitle
-	\tableofcontents
+\maketitle
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{logo.png}
+\label{fig:logo}
+\end{figure}
 
-\chapter{Introduction}
+\newpage
+\tableofcontents
+\newpage
+\section{Introduction}
 Pour le deuxième projet du cours INFO-F-106, nous avons dû implémenter un compresseur d'image appelé ULBMP, basé sur le format BMP, développé par Microsoft dans les années 80.
 
 Afin de pouvoir venir à bout de ce projet, il est demandé d'importer le module \textit{Pyside6} afin de pouvoir créer un interface grahpique pour l'utilisateur. Il est donc important de lire la documentation de ce module afin de pouvoir l'utiliser correctement.
@@ -34,36 +50,77 @@ Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichie
 Il est important de notifier qu'il y a plusieurs version du compresseur d'image. Cela signifie que le header (ce qui se trouve à chaque début de fichier pour reconnaitre le format du fichier) doit être adapté à chaque version.
 
 
-\chapter{Initialisation}
-Comme cité dans l'introduction, les classes \textit{Decoder} et \textit{Encoder} nécessiteent une image, définie par la classe \textit{Image}. Cette classe contient les attributs suivants : la largeur, la hauteur de l'image et les pixels qui la constitue. Ces derniers sont également définis à partir d'une classe, \textit{Pixel} qui contient les attributs suivants : la valeur de rouge, de vert et de bleu. 
+\section{Méthodes}
+Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image}. 
+\subsection{Pixel et Image}
+La classe \textit{Pixel} possède les attributs suivants : r, g, b (ces derniers correspondent aux valeurs RGB d'un pixel). 
+Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
+Certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction \textit{getitem} de la classe \textit{Image} permet de récupérer un pixel à partir de ses coordonnées (x, y).
 
-Bien évidemment, certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction __getitem__ permet de récupérer un pixel à partir de ses coordonnées (x, y).
-\begin{lstlisting}
+\begin{lstlisting}[language=Python]
 def __getitem__(self, pos: tuple[int, int]):
-        """
-        Surcharge l'opérateur [] en lecture
-        Lance une erreur si pos n'est pas une position valide dans l'image.
-        """
-        x = pos[0]
-        y = pos[1]
-        if not (x <= self.w and y <= self.h):
-            raise IndexError("Il n'y a pas assez de pixels pour remplir l'image.")
-        return self.img[y * self.w + x]
+    x = pos[0]
+    y = pos[1]
+    if not (x <= self.w and y <= self.h):
+        raise IndexError("Not enough pixels.")
+    return self.img[y * self.w + x]
 
+\end{lstlisting}
+
+Ou bien la fonction \textit{setitem} qui permet de modifier un pixel à partir de ses coordonnées (x, y).
+\begin{lstlisting}[language=Python]
+ def __setitem__(self, pos: tuple[int, int], pix):
+    x = pos[0]
+    y = pos[1]
+    if x < self.w or y < self.h:
+        self.img[x + y * self.w] = pix
+    else:
+        raise IndexError("Invalid position.")
+
+\end{lstlisting}
+
+Par ailleurs, rappelons nous que chaque couleur du pixel est encodée sur 8 bits, ce qui signifie qu'il est impossible d'avoir des valeurs négatives ou supérieures à 255. De plus, une image ne peut pas posséder une quantité de pixel supérieure à la dimension de l'image. Par exemple, si une image a une hauteur de 5 et une largeur de 3, il est impossible d'accéder au pixel d'indice (6, 2) car il n'existe pas.
+
+Voilà pourquoi les constructeurs des classes \textit{Pixel} et \textit{Image} sont définis comme suit :
+
+Pour la classe Pixel : 
+\begin{lstlisting}[language=Python]
+def __init__(self, r, g, b):
+    self.red = r
+    self.green = g
+    self.blue = b
+    if self.red < 0 or self.green < 0 or self.blue < 0:
+        raise ValueError("RGB values must be positive.")
+    self.pixel = (self.red, self.green, self.blue)
+\end{lstlisting}
+
+Pour la classe Image : 
+
+\begin{lstlisting}[language=Python]
+ def __init__(self, width: int, height: int, pixels):
+    self.w = width
+    self.h = height
+    self.img = pixels
+    if self.w * self.h != len(self.img):
+      raise ValueError("Quantity of pixels doesn't match the image's dimension.")
+    for i in pixels:
+        if not isinstance(i, Pixel):
+		  raise ValueError("List's elements aren't Pixel instances.")
 \end{lstlisting}
 
 
 
-\chapter{ULBMP 2.0}
+
+\section{ULBMP 2.0}
 Ceci est le chapitre 2.
 
-\chapter{ULBMP 3.0}
+\section{ULBMP 3.0}
 Ceci est le chapitre 3.
 
-\chapter{ULBMP 4.0}
+\section{ULBMP 4.0}
 Ceci est le chapitre 4.
 
-\chapter{Conclusion}
+\section{Conclusion}
 Ceci est une conclusion.
 
 \end{document}

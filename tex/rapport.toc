@@ -1,6 +1,7 @@
-\contentsline {chapter}{\numberline {1}Introduction}{2}{}%
-\contentsline {chapter}{\numberline {2}Initialisation}{3}{}%
-\contentsline {chapter}{\numberline {3}ULBMP 2.0}{4}{}%
-\contentsline {chapter}{\numberline {4}ULBMP 3.0}{5}{}%
-\contentsline {chapter}{\numberline {5}ULBMP 4.0}{6}{}%
-\contentsline {chapter}{\numberline {6}Conclusion}{7}{}%
+\contentsline {section}{\numberline {1}Introduction}{3}{}%
+\contentsline {section}{\numberline {2}Méthodes}{3}{}%
+\contentsline {subsection}{\numberline {2.1}Pixel et Image}{3}{}%
+\contentsline {section}{\numberline {3}ULBMP 2.0}{4}{}%
+\contentsline {section}{\numberline {4}ULBMP 3.0}{4}{}%
+\contentsline {section}{\numberline {5}ULBMP 4.0}{4}{}%
+\contentsline {section}{\numberline {6}Conclusion}{4}{}%
