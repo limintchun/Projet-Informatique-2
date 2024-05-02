@@ -10,6 +10,7 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{listingsutf8}
+\usepackage{underscore}
 
 \usepackage{fullpage}
 
@@ -41,9 +42,9 @@ En effet, comme nous devons utiliser des pixels, il est important de comprendre 
 
 Il était donc utile d'utiliser le programme \textbf{hexdump}, à exécuter dans le terminal afin de pouvoir visualiser les données hexadécimale.
 
-Cependant, une question se pose : comment peut-on représenter une image en format numérique ou bien comment peut-on compresser une image ? Afin de résoudre ce problème, on va procéder comme suit, on va créer une classe \textit{Decoder} et \textit{Encoder}. 
+Cependant, une question se pose : comment pouvons-nous représenter une image en format numérique ou bien comment pouvons-nous compresser une image ? Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. 
 
-Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (on définiera plus tard plus précisemment ce que c'est).  
+Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est).  
 
 Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les bytes correspondants aux valeurs RGB de chaque pixel.
 
@@ -55,7 +56,7 @@ Comme cité dans l'introduction, nous allons devoir implémenter deux classes : 
 \subsection{Pixel et Image}
 La classe \textit{Pixel} possède les attributs suivants : r, g, b (ces derniers correspondent aux valeurs RGB d'un pixel). 
 Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
-Certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction \textit{getitem} de la classe \textit{Image} permet de récupérer un pixel à partir de ses coordonnées (x, y).
+Certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction \texttt{__getitem__} de la classe \textit{Image} permet de récupérer un pixel à partir de ses coordonnées (x, y).
 
 \begin{lstlisting}[language=Python]
 def __getitem__(self, pos: tuple[int, int]):
@@ -67,7 +68,7 @@ def __getitem__(self, pos: tuple[int, int]):
 
 \end{lstlisting}
 
-Ou bien la fonction \textit{setitem} qui permet de modifier un pixel à partir de ses coordonnées (x, y).
+Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à partir de ses coordonnées (x, y).
 \begin{lstlisting}[language=Python]
  def __setitem__(self, pos: tuple[int, int], pix):
     x = pos[0]
@@ -108,8 +109,31 @@ Pour la classe Image :
 		  raise ValueError("List's elements aren't Pixel instances.")
 \end{lstlisting}
 
+\subsection{Encoder}
+La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon).
 
+La première version de l'\textit{Encoder} permettait seulement d'analyser les bits un à un et ensuite l'écrire dans un fichier. Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. C'est pourquoi, il est important de créer une deuxième version de l'\textit{Encoder} qui permettera  de compresser l'image.
 
+Nous avons cité précedemment la notion de encodage RLE. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un bytecorrespondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants.
+
+Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Cette méthode d'encodage sera utiliser pour la version 3.0 du compresseur. 
+
+Nous avons également dû implémenter une quatrième  version de l'\textit{Encoder}. L'idée est de regrouper les pixels en fonction de leur différence de couleur. Si par exemple, soit deux pixels : $P_1 = (R_1, G_1, B_1)$ et $P_2 = (R_2, G_2, B_2)$, la différence de couleur entre ces deux pixels est définie comme suit : 
+
+\begin{align*}
+		\Delta_R = R_2 - R_1 \\
+		\Delta_G = G_2 - G_1 \\
+		\Delta_B =  B_2 - B_1 \\
+\end{align*}
+
+Ainsi, en fonction des intervalles de valeurs de $\Delta_R$, $\Delta_G$ et $\Delta_B$, nous allons regrouper les pixels en fonction de leur différence de couleur. Plus la différence sera grande, plus on aura besoin de byte pour encoder les pixels. En effet, si la différence n'est pas grande (c'est-à-dire entre -2 et 1), la couleur des pixels sont assez proche pour qu'on ne voit pas la différence à l'oeil nu. Ainsi, on peut se permettre de les encoder sur moins de bytes.
+
+Il est important de noter qu'il va falloir décaler les valeurs de différences car il est possible que ces dernières soient négatives. De plus, le calcul de différence se fera toujours à partir du pixel actif et le pixel précédent.
+% Si trop de page flm, mais sinon peut-être préciser les différents types de bloc.
+
+Comme il fallait implémenter plusieurs versions de l'\textit{Encoder}, il était important de créer une méthode \texttt{get_header} qui permet de retourner une suite de bytes correspondant au header contenant la constante ULBMP (c'est ce qui permet d'identifier nous sommes en train d'analyser le format correct du fichier), la hauteur, la largeur, la taille du header (mis par défaut à 12 car elle varie seulement pour la version 3) et la version. En fonction de la valeur du paramètre \textit{version}, nous ajouterons des informations supplémentaires dont la profondeur et l'encodage RLE. À ceux-là s'ajoute lapalette, qui 
+\subsection{Decoder}
+La classe \textit{Decoder} se repose seulemetn sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}.
 
 \section{ULBMP 2.0}
 Ceci est le chapitre 2.
