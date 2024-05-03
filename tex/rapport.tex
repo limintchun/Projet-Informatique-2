@@ -42,7 +42,9 @@ En effet, comme nous devons utiliser des pixels, il est important de comprendre 
 
 Il était donc utile d'utiliser le programme \textbf{hexdump}, à exécuter dans le terminal afin de pouvoir visualiser les données hexadécimale.
 
-Cependant, une question se pose : comment pouvons-nous représenter une image en format numérique ou bien comment pouvons-nous compresser une image ? Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. 
+L'un des objectifs de ce projet est de pouvoir compresser une image. En effet, ce n'est pas efficace de stocker une image de manière brut car elle prendrait trop de place dans le stockage. Prenons l'exemple d'une image de dimension $360 \times 480$. Si chaque pixel est codé sur 3 bytes (un byte pour chaque couleur), cela signifie que l'image prendrait $360 \times 480 \times 3 = 518400$ bytes, soit 518.4 kilo-octets. Nous pourrions se poser la question suivante : comment pouvons-nous réduire la taille de l'image tout en gardant une qualité acceptable ?
+
+Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. 
 
 Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est).  
 
@@ -112,6 +114,7 @@ Pour la classe Image :
 \subsection{Encoder}
 La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon).
 
+%Cette méthode sera utiliser pour enregistrer une image, l'une des fonctionnalité visé par le projet.
 La première version de l'\textit{Encoder} permettait seulement d'analyser les bits un à un et ensuite l'écrire dans un fichier. Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. C'est pourquoi, il est important de créer une deuxième version de l'\textit{Encoder} qui permettera  de compresser l'image.
 
 Nous avons cité précedemment la notion de encodage RLE. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un bytecorrespondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants.
@@ -131,12 +134,23 @@ Ainsi, en fonction des intervalles de valeurs de $\Delta_R$, $\Delta_G$ et $\Del
 Il est important de noter qu'il va falloir décaler les valeurs de différences car il est possible que ces dernières soient négatives. De plus, le calcul de différence se fera toujours à partir du pixel actif et le pixel précédent.
 % Si trop de page flm, mais sinon peut-être préciser les différents types de bloc.
 
-Comme il fallait implémenter plusieurs versions de l'\textit{Encoder}, il était important de créer une méthode \texttt{get_header} qui permet de retourner une suite de bytes correspondant au header contenant la constante ULBMP (c'est ce qui permet d'identifier nous sommes en train d'analyser le format correct du fichier), la hauteur, la largeur, la taille du header (mis par défaut à 12 car elle varie seulement pour la version 3) et la version. En fonction de la valeur du paramètre \textit{version}, nous ajouterons des informations supplémentaires dont la profondeur et l'encodage RLE. À ceux-là s'ajoute lapalette, qui 
-\subsection{Decoder}
-La classe \textit{Decoder} se repose seulemetn sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}.
+Comme il fallait implémenter plusieurs versions de l'\textit{Encoder}, il était important de créer une méthode \texttt{get_header} qui permet de retourner une suite de bytes correspondant au header contenant la constante ULBMP (c'est ce qui permet d'identifier nous sommes en train d'analyser le format correct du fichier), la hauteur, la largeur, la taille du header (mis par défaut à 12 car elle varie seulement pour la version 3) et la version. En fonction de la valeur du paramètre \textit{version}, nous ajouterons des informations supplémentaires dont la profondeur et l'encodage RLE. À ceux-là s'ajoute la palette, utilisé pour la version 3.0.
+%---
+%Terminer définir palette
+%---
 
-\section{ULBMP 2.0}
-Ceci est le chapitre 2.
+\subsection{Decoder}
+La classe \textit{Decoder} se repose sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}. Cette fonction sera utile lorsque l'utilisateur voudra ouvrir une image.
+
+
+\section{Résultats}
+Naturellement, il est interéssant de comparer les différentes versions du compresseur. Pour ce faire, nous avons utilisé une image de dimension $360 \times 480$ pixels. Nous avons ensuite compressé cette image en utilisant les différentes versions du compresseur. Et voici les résultats obtenus : 
+
+
+
+
+
+
 
 \section{ULBMP 3.0}
 Ceci est le chapitre 3.
