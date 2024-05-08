@@ -2,8 +2,8 @@
 \contentsline {section}{\numberline {2}Méthodes}{3}{}%
 \contentsline {subsection}{\numberline {2.1}Pixel et Image}{3}{}%
 \contentsline {subsection}{\numberline {2.2}Encoder}{4}{}%
-\contentsline {subsection}{\numberline {2.3}Decoder}{5}{}%
-\contentsline {section}{\numberline {3}Résultats}{5}{}%
-\contentsline {section}{\numberline {4}ULBMP 3.0}{5}{}%
+\contentsline {subsection}{\numberline {2.3}Decoder}{6}{}%
+\contentsline {section}{\numberline {3}Résultats}{6}{}%
+\contentsline {section}{\numberline {4}ULBMP 3.0}{6}{}%
 \contentsline {section}{\numberline {5}ULBMP 4.0}{6}{}%
 \contentsline {section}{\numberline {6}Conclusion}{6}{}%
