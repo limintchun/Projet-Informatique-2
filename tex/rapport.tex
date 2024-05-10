@@ -1,5 +1,5 @@
 \documentclass[utf8]{article}
-
+% Si assez de page, utiliser indent en paramètre pour parskip
 \usepackage[utf8]{inputenc}
 
 \usepackage[parfill]{parskip}
@@ -11,7 +11,7 @@
 \usepackage{float}
 \usepackage{listingsutf8}
 \usepackage{underscore}
-
+\usepackage{indentfirst}
 \usepackage{fullpage}
 
 
@@ -93,15 +93,36 @@ Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à part
 
 
 \subsection{Encoder}
-La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon).
+La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon). Cette méthode sera utiliser pour enregistrer une image, l'une des fonctionnalité visé par le projet.
 
-%Cette méthode sera utiliser pour enregistrer une image, l'une des fonctionnalité visé par le projet.
-La première version de l'\textit{Encoder} permettait seulement d'analyser les bits un à un et ensuite l'écrire dans un fichier. Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. C'est pourquoi, il est important de créer une deuxième version de l'\textit{Encoder} qui permettera  de compresser l'image.
+La première version de l'\textit{Encoder} permet seulement de convertir des valeurs entières en bits un à un et ensuite l'écrire dans un fichier. Cela est faisable grâce à la fonction \texttt{int.to_bytes}.\footnote{pixels est une liste contenant des éléments de la classe \texttt{Pixel} et get_red(), get_blue() et get_green() sont des méthodes de la classe Pixel qui permettent de récupérer les valeurs RGB d'un pixel.}
 
-Nous avons cité précedemment la notion de encodage RLE. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un byte qui correspondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants.
+\begin{lstlisting}[language=Python, basicstyle=\small]
+bpixels = b''.join([pixel.get_red(), 
+	pixel.get_blue(), pixel.get_green()] 
+	for pixel in pixels)
+\end{lstlisting}
 
-Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Cette méthode d'encodage sera utiliser pour la version 3.0 du compresseur. 
+Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $360 \times 480 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un byte qui correspondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12.
 
+Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Dans ce projet, nous considérerons les profondeurs suivantes : 1, 2, 4, 8 et 24. Notons que si la profondeur vaut 8 ou 24, cela revient à lire 1 octet un par 1, ce qui revient à utiliser l'encodage RLE. De ce fait, la version 3 prend en compte un encodage RLE seulement si la profondeur est de minimum 8.  
+
+Voici une fonction qui permet de convertir une liste de tuple d'entiers en une chaine de bits grâce à la liste \texttt{padding} qui est la palette de couleurs utilisées.
+\begin{lstlisting}[language=Python, basicstyle=\small]
+def split_string(grouped_pixels: list[str], padding:list[str]) -> bytes:
+	color_to_index = {color: index for index, color in enumerate(padding)}
+	indices = []
+	for pixel in grouped_pixels:   	
+		indices.append(padding[pixel])
+	bit_string = ''.join(str(bit) for bit in indices)
+	if len(bit_string) != 8:  
+		shift = 8 - len(bit_string)
+	shifter = '0' * shift
+	shifted_bit_string = bit_string + shifter
+	decimal_value = int(shifted_bit_string, 2)
+	hex_value = bytes([decimal_value])
+	return hex_value
+\end{lstlisting}
 Nous avons également dû implémenter une quatrième  version de l'\textit{Encoder}. L'idée est de regrouper les pixels en fonction de leur différence de couleur. Si par exemple, soit deux pixels : $P_1 = (R_1, G_1, B_1)$ et $P_2 = (R_2, G_2, B_2)$, la différence de couleur entre ces deux pixels est définie comme suit : 
 
 \begin{align*}
@@ -112,46 +133,9 @@ Nous avons également dû implémenter une quatrième  version de l'\textit{Enco
 
 Ainsi, en fonction des intervalles de valeurs de $\Delta_R$, $\Delta_G$ et $\Delta_B$, nous allons regrouper les pixels en fonction de leur différence de couleur. Plus la différence sera grande, plus on aura besoin de byte pour encoder les pixels. En effet, si la différence n'est pas grande (c'est-à-dire entre -2 et 1), la couleur des pixels sont assez proche pour qu'on ne voit pas la différence à l'oeil nu. Ainsi, on peut se permettre de les encoder sur moins de bytes.
 
-Comme cité précédemment, les valeurs d'un pixel ne peuvent pas être négatives. Il va falloir décaler les valeurs de différences car il est possible que ces dernières soient négatives. De plus, le calcul de différence se fera toujours à partir du pixel actif et le pixel précédent.
-% Si trop de page flm, mais sinon peut-être préciser les différents types de bloc.
-
-Comme il fallait implémenter plusieurs versions de l'\textit{Encoder}, il était important de créer une méthode \texttt{get_header} qui permet de retourner une suite de bytes correspondant au header contenant la constante ULBMP (c'est ce qui permet d'identifier nous sommes en train d'analyser le format correct du fichier), la hauteur, la largeur, la taille du header (mis par défaut à 12 car elle varie seulement pour la version 3) et la version. En fonction de la valeur du paramètre \textit{version}, nous ajouterons des informations supplémentaires dont la profondeur et l'encodage RLE. À ceux-là s'ajoute la palette, utilisé pour la version 3.0.
-
-La palette est une liste contenant seulement les couleurs se trouvant sur l'image. Ainsi, nous stockerons les couleurs et leurs indices dans un dictionnaire pour pouvoir faire appel à ces derniers plus rapidement.
-
-\begin{lstlisting}[language=Python, basicstyle=\small, numbers=left]
-list_pixels = []
-for i in pixels: 
-	list_pixels.append((int.to_bytes(pixel.get_red(), byteorder='little'),
-                                int.to_bytes(pixel.get_green(), byteorder='little'),
-                                int.to_bytes(pixel.get_blue(), byteorder='little'))
-padding = list(set(list_pixels))  
-grouped_pixels = [b''.join(element) for element in list_pixels]
-result = [b''.join(element) for element in padding]
-color_to_index = {color: index for index, color in enumerate(result)}
-
-indices = []
-for pixel in grouped_pixels:   	
-	indices.append(color_to_index[pixel])
-
-bit_string = ''.join(str(bit) for bit in indices)
-
-if len(bit_string) != 8:  
-	shift = 8 - len(bit_string)
-shifter = '0' * shift
-shifted_bit_string = bit_string + shifter
-decimal_value = int(shifted_bit_string, 2)
-
-\end{lstlisting}
-
-La variable \texttt{pixels} est obtenu grace à la méthode de la classe \texttt{Image} \texttt{get_pixels} qui retourne l'attribut \texttt{pixels}
-
-À la ligne 6, les fonctions \texttt{list} et \texttt{set} permettent de supprimer les doublons car c'est possible d'avoir plusieurs fois la meme couleur
-
-La fin du code consiste à parcourir la liste de pixels et trouver les indices correspondants dans la palette. Et enfin, nous convertissons les bits en entier  en fonction de la profondeur.
-
 des couleurs utilisé des bytes pour encoder les indices des couleurs de la palette. Par exemple, plutôt que d'encoder $2^k$. Cela permet de réduire la taille de l'image car on n'a plus besoin de stocker les valeurs RGB de chaque pixel.
 
+\newpage
 \subsection{Decoder}
 La classe \textit{Decoder} se repose sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}. Cette fonction sera utile lorsque l'utilisateur voudra ouvrir une image.
 
@@ -163,7 +147,7 @@ Nous nous attarderons brièvement quant à l'analyse de la version 1.0 et 2.0 du
 
 \begin{lstlisting}[language=Python, basicstyle=\small]
 if version.to_bytes(1, "little") == b'\x01':
-	img = [(int.from_bytes(pixels[i:i+1]), 
+	list_pixels = [(int.from_bytes(pixels[i:i+1]), 
 		int.from_bytes(pixels[i+1:i+2]), 
 		int.from_bytes(pixels[i+2:i+3])) 
 		for i in range(0, len(pixels), 3)]
@@ -171,7 +155,7 @@ if version.to_bytes(1, "little") == b'\x01':
 	img = [Pixel.get_pixel(p) for p in img]
 
 if version.to_bytes(1, "little") == b'\x02':
-	img = [(int.from_bytes(pixels[i:i+]), 
+	list_pixels = [(int.from_bytes(pixels[i:i+]), 
 		int.from_bytes(pixels[i+1:i+2]),
 		int.from_bytes(pixels[i+2:i+3]))
 		int.from_bytes(pixels[i+3:i+4])
@@ -183,7 +167,7 @@ if version.to_bytes(1, "little") == b'\x02':
 Concernant la troisième version du \texttt{Decoder}, elle dépend du paramètre RLE. Si ce dernier est à \texttt{True}, il suffit de lire les bytes 4 par 4, comme la version 2.0. Sinon, il faut séparer la séquence de bytes qui correspond aux valeurs RGB des pixels en fonction de la profondeur précisée dans le header. Pour cela, une fonction appelée \texttt{split_into_pixels} a été créée, elle permet de séparer les bytes en fonction de la profondeur. Ele prend en paramètre une chaine de caractère correspondant au bytes et un entier représentant la profondeur.
 
 \begin{lstlisting}[language=Python, basicstyle=\small]
-def split_into_pixels(bits: str, depth: int):
+def split_into_pixels(bits: str, depth: int) -> list[bytes]:
     pixels = []
     for i in range(0, len(bits), depth):
 	pixels.append(bits[i:i+depth])
