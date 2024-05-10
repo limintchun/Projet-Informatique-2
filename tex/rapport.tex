@@ -33,55 +33,17 @@
 \section{Introduction}
 Pour le deuxième projet du cours INFO-F-106, nous avons dû implémenter un compresseur d'image appelé ULBMP, basé sur le format BMP, développé par Microsoft dans les années 80.
 
-Afin de pouvoir venir à bout de ce projet, il était demandé d'importer le module \textit{Pyside6} afin de pouvoir créer un interface grahpique pour l'utilisateur. Il était donc important de lire la documentation de ce module afin de pouvoir l'utiliser correctement.
-
-De plus, il est fondamental de maitriser la manipulation de fichier, de bits (notamment le shifting et le masking), ainsi que la compréhension de la représentation binaire et hexadécimal.
-
-En effet, comme nous devons utiliser des pixels, il est important de comprendre que ces derniers sont composées de 3 valeurs : Rouge, Vert, Bleu (RVB ou RGB en anglais). Chacune de ces valeurs est codée sur 8 bits, ce qui signifie que chaque valeur peut prendre $2^8 = 256$ valeurs différentes.
-
-
-Il était donc utile d'utiliser le programme \textbf{hexdump} afin de pouvoir visualiser les données hexadécimale.
-
 L'un des objectifs de ce projet est de pouvoir compresser une image. En effet, ce n'est pas efficace de stocker une image de manière brut car elle prendrait trop de place dans le stockage. Prenons l'exemple d'une image de dimension $360 \times 480$. Si chaque pixel est codé sur 3 bytes (un byte pour chaque couleur), cela signifie que l'image prendrait $360 \times 480 \times 3 = 518400$ bytes, soit 518.4 kilo-octets. Nous pourrions se poser la question suivante : comment pouvons-nous réduire la taille de l'image tout en gardant une qualité acceptable ?
 
-Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. 
+Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est). Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les bytes correspondants aux valeurs RGB de chaque pixel.
 
-Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est).  
-
-Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les bytes correspondants aux valeurs RGB de chaque pixel.
-
-Il est important de notifier qu'il y a plusieurs version du compresseur d'image. Cela signifie que le header (ce qui se trouve à chaque début de fichier pour reconnaitre le format du fichier) doit être adapté à chaque version.
-
+Par ailleurs, il est fondamental de maitriser la manipulation de fichier, de bits (notamment le shifting et le masking), ainsi que la compréhension de la représentation binaire et hexadécimal. En effet, comme nous devons utiliser des pixels, il est important de comprendre que ces derniers sont composées de 3 valeurs : Rouge, Vert, Bleu (RVB ou RGB en anglais). Chacune de ces valeurs est codée sur 8 bits, ce qui signifie que chaque valeur peut prendre $2^8 = 256$ valeurs différentes. De plus, il faut savoir que les bytes du fichiers ULBMP sont encodés en little-endian, cela signifie que les bits de poids faible se trouve au début de la séquence de bits. Il était donc utile d'utiliser le programme \texttt{hexdump} afin de pouvoir visualiser les données hexadécimale.
 
 \section{Méthodes}
-Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image}. 
+Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image} car elles seront utiles pour à la représentation des pixels et des images en Python.
 \subsection{Pixel et Image}
 La classe \textit{Pixel} possède les attributs suivants : r, g, b (ces derniers correspondent aux valeurs RGB d'un pixel). 
 Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
-Certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction \texttt{__getitem__} de la classe \textit{Image} permet de récupérer un pixel à partir de ses coordonnées (x, y).
-
-\begin{lstlisting}[language=Python, basicstyle=\small]
-def __getitem__(self, pos: tuple[int, int]):
-    x = pos[0]
-    y = pos[1]
-    if not (x <= self.w and y <= self.h):
-        raise IndexError("Not enough pixels.")
-    return self.img[y * self.w + x]
-
-\end{lstlisting}
-
-Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à partir de ses coordonnées (x, y).
-\begin{lstlisting}[language=Python, basicstyle=\small]
- def __setitem__(self, pos: tuple[int, int], pix):
-    x = pos[0]
-    y = pos[1]
-    if x < self.w or y < self.h:
-        self.img[x + y * self.w] = pix
-    else:
-        raise IndexError("Invalid position.")
-
-\end{lstlisting}
-
 Par ailleurs, rappelons nous que chaque couleur du pixel est encodée sur 8 bits, ce qui signifie qu'il est impossible d'avoir des valeurs négatives ou supérieures à 255. De plus, une image ne peut pas posséder une quantité de pixel supérieure à la dimension de l'image. Par exemple, si une image a une hauteur de 5 pixels et une largeur de 3 pixels, il est impossible d'accéder au pixel d'indice (6, 2) car il n'existe pas.
 
 Voilà pourquoi les constructeurs des classes \textit{Pixel} et \textit{Image} sont définis comme suit :
@@ -109,7 +71,26 @@ Pour la classe Image :
     for i in pixels:
         if not isinstance(i, Pixel):
 		  raise ValueError("List's elements aren't Pixel instances.")
+
+def __getitem__(self, pos: tuple[int, int]):
+    x = pos[0]
+    y = pos[1]
+    if not (x <= self.w and y <= self.h):
+        raise IndexError("Not enough pixels.")
+    return self.img[y * self.w + x]
+
+def __setitem__(self, pos: tuple[int, int], pix):
+    x = pos[0]
+    y = pos[1]
+    if x < self.w or y < self.h:
+        self.img[x + y * self.w] = pix
+    else:
+        raise IndexError("Invalid position.")
+
 \end{lstlisting}
+Certaines fonctions spécifiques à la construction de classes doivent être créé pour faciliter la manipulation des pixels et des images. Par exemple, la fonction \texttt{__getitem__} de la classe \textit{Image} permet de récupérer un pixel à partir de ses coordonnées (x, y).
+Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à partir de ses coordonnées (x, y).
+
 
 \subsection{Encoder}
 La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon).
@@ -162,34 +143,61 @@ shifted_bit_string = bit_string + shifter
 decimal_value = int(shifted_bit_string, 2)
 
 \end{lstlisting}
-La variable \texttt{pixels} est obtenu grace a la methode de la classe \texttt{Image} \texttt{get_pixels} qui retourne l'attribut \texttt{pixels}
 
-À la ligne 6, les fonctions \texttt{list} et \texttt{set} permettent de supprimer supprimer les doublons car c'est possible d'avoir plusieurs fois la meme couleur
+La variable \texttt{pixels} est obtenu grace à la méthode de la classe \texttt{Image} \texttt{get_pixels} qui retourne l'attribut \texttt{pixels}
 
-Parcourt la liste de pixels et trouver les indices correspondants dans la palette
-Convertit les bits en int en fonction de la profondeur
+À la ligne 6, les fonctions \texttt{list} et \texttt{set} permettent de supprimer les doublons car c'est possible d'avoir plusieurs fois la meme couleur
+
+La fin du code consiste à parcourir la liste de pixels et trouver les indices correspondants dans la palette. Et enfin, nous convertissons les bits en entier  en fonction de la profondeur.
 
 des couleurs utilisé des bytes pour encoder les indices des couleurs de la palette. Par exemple, plutôt que d'encoder $2^k$. Cela permet de réduire la taille de l'image car on n'a plus besoin de stocker les valeurs RGB de chaque pixel.
+
 \subsection{Decoder}
 La classe \textit{Decoder} se repose sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}. Cette fonction sera utile lorsque l'utilisateur voudra ouvrir une image.
 
+
+Bien évidemment, en fonction de la version du fichier encodé, il va falloir adapter la méthode \texttt{load_from}. Mais l'idée principale reste tout de même de convertir une série de bytes précise étant donné que les fichiers ULBMP sont encodés de cette manière. Cela est faisable grâce à la fonction \texttt{int.from_bytes} qui permet de convertir une série de bytes en entier. Par la suite, nous stockerons ces valeurs dans une liste, type accepté par la classe \texttt{Encoder}.
+
+
+Nous nous attarderons brièvement quant à l'analyse de la version 1.0 et 2.0 du \texttt{Decoder} puisqu'elle consiste seulement à lire les bytes un intervalle précis. En effet, les valeurs RGB des pixels sont encodées sur 3 bytes dans la première version du fichier ULBMP. Ainsi, il suffit de lire les bytes 3 par 3 pour obtenir les valeurs RGB de chaque pixel. Quant à la version 2.0, les valeurs RGB sont encodées sur 4 bytes (d'abord le nombre de répétition du pixel, ensuite les valeurs RGB), ce qui signifie que nous devons lire les bytes 4 par 4.
+
+\begin{lstlisting}[language=Python, basicstyle=\small]
+if version.to_bytes(1, "little") == b'\x01':
+	img = [(int.from_bytes(pixels[i:i+1]), 
+		int.from_bytes(pixels[i+1:i+2]), 
+		int.from_bytes(pixels[i+2:i+3])) 
+		for i in range(0, len(pixels), 3)]
+
+	img = [Pixel.get_pixel(p) for p in img]
+
+if version.to_bytes(1, "little") == b'\x02':
+	img = [(int.from_bytes(pixels[i:i+]), 
+		int.from_bytes(pixels[i+1:i+2]),
+		int.from_bytes(pixels[i+2:i+3]))
+		int.from_bytes(pixels[i+3:i+4])
+		for i in range(0, len(pixels), 4)]
+	 
+	img = [Pixel.get_pixel(p) for p in img]
+\end{lstlisting}
+
+Concernant la troisième version du \texttt{Decoder}, elle dépend du paramètre RLE. Si ce dernier est à \texttt{True}, il suffit de lire les bytes 4 par 4, comme la version 2.0. Sinon, il faut séparer la séquence de bytes qui correspond aux valeurs RGB des pixels en fonction de la profondeur précisée dans le header. Pour cela, une fonction appelée \texttt{split_into_pixels} a été créée, elle permet de séparer les bytes en fonction de la profondeur. Ele prend en paramètre une chaine de caractère correspondant au bytes et un entier représentant la profondeur.
+
+\begin{lstlisting}[language=Python, basicstyle=\small]
+def split_into_pixels(bits: str, depth: int):
+    pixels = []
+    for i in range(0, len(bits), depth):
+	pixels.append(bits[i:i+depth])
+    return pixels
+\end{lstlisting}
 
 \section{Résultats}
 Naturellement, il est interéssant de comparer les différentes versions du compresseur. Pour ce faire, nous avons utilisé une image de dimension $360 \times 480$ pixels. Nous avons ensuite compressé cette image en utilisant les différentes versions du compresseur. Et voici les résultats obtenus : 
 
 
-
-
-
-
-
-\section{ULBMP 3.0}
-Ceci est le chapitre 3.
-
-\section{ULBMP 4.0}
-Ceci est le chapitre 4.
-
 \section{Conclusion}
-Ceci est une conclusion.
+
+
+
+
 
 \end{document}
