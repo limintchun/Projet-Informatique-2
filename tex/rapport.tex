@@ -2,7 +2,7 @@
 % Si assez de page, utiliser indent en paramètre pour parskip
 \usepackage[utf8]{inputenc}
 
-\usepackage[parfill]{parskip}
+\usepackage[parfill, indent]{parskip}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -103,7 +103,7 @@ bpixels = b''.join([pixel.get_red(),
 	for pixel in pixels)
 \end{lstlisting}
 
-Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $360 \times 480 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un byte qui correspondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12.
+Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $360 \times 480 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un byte qui correspondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12. En effet, à la place d'avoir une image contenant $10 \times 3 = 30$ bytes (pour 10 pixels dont leurs couleurs sont identiques), nous n'aurons besoin que de $3+1 = 4$ bytes pour encoder les couleurs.
 
 Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Dans ce projet, nous considérerons les profondeurs suivantes : 1, 2, 4, 8 et 24. Notons que si la profondeur vaut 8 ou 24, cela revient à lire 1 octet un par 1, ce qui revient à utiliser l'encodage RLE. De ce fait, la version 3 prend en compte un encodage RLE seulement si la profondeur est de minimum 8.  
 
@@ -133,9 +133,6 @@ Nous avons également dû implémenter une quatrième  version de l'\textit{Enco
 
 Ainsi, en fonction des intervalles de valeurs de $\Delta_R$, $\Delta_G$ et $\Delta_B$, nous allons regrouper les pixels en fonction de leur différence de couleur. Plus la différence sera grande, plus on aura besoin de byte pour encoder les pixels. En effet, si la différence n'est pas grande (c'est-à-dire entre -2 et 1), la couleur des pixels sont assez proche pour qu'on ne voit pas la différence à l'oeil nu. Ainsi, on peut se permettre de les encoder sur moins de bytes.
 
-des couleurs utilisé des bytes pour encoder les indices des couleurs de la palette. Par exemple, plutôt que d'encoder $2^k$. Cela permet de réduire la taille de l'image car on n'a plus besoin de stocker les valeurs RGB de chaque pixel.
-
-\newpage
 \subsection{Decoder}
 La classe \textit{Decoder} se repose sur la méthode statique \texttt{load_from} qui prend en paramètre le chemin d'accès du fichier à lire. Cette méthode permet de lire les bytes du fichier et de les convertir en une instance de la classe \textit{Image}. Cette fonction sera utile lorsque l'utilisateur voudra ouvrir une image.
 
@@ -143,7 +140,7 @@ La classe \textit{Decoder} se repose sur la méthode statique \texttt{load_from}
 Bien évidemment, en fonction de la version du fichier encodé, il va falloir adapter la méthode \texttt{load_from}. Mais l'idée principale reste tout de même de convertir une série de bytes précise étant donné que les fichiers ULBMP sont encodés de cette manière. Cela est faisable grâce à la fonction \texttt{int.from_bytes} qui permet de convertir une série de bytes en entier. Par la suite, nous stockerons ces valeurs dans une liste, type accepté par la classe \texttt{Encoder}.
 
 
-Nous nous attarderons brièvement quant à l'analyse de la version 1.0 et 2.0 du \texttt{Decoder} puisqu'elle consiste seulement à lire les bytes un intervalle précis. En effet, les valeurs RGB des pixels sont encodées sur 3 bytes dans la première version du fichier ULBMP. Ainsi, il suffit de lire les bytes 3 par 3 pour obtenir les valeurs RGB de chaque pixel. Quant à la version 2.0, les valeurs RGB sont encodées sur 4 bytes (d'abord le nombre de répétition du pixel, ensuite les valeurs RGB), ce qui signifie que nous devons lire les bytes 4 par 4.
+Nous nous attarderons brièvement concernant l'analyse de la version 1.0 et 2.0 du \texttt{Decoder} puisqu'elle consiste seulement à lire les bytes un intervalle précis. En effet, les valeurs RGB des pixels sont encodées sur 3 bytes dans la première version du fichier ULBMP. Ainsi, il suffit de lire les bytes 3 par 3 pour obtenir les valeurs RGB de chaque pixel. Quant à la version 2.0, les valeurs RGB sont encodées sur 4 bytes (d'abord le nombre de répétition du pixel, ensuite les valeurs RGB), ce qui signifie que nous devons lire les bytes 4 par 4.
 
 \begin{lstlisting}[language=Python, basicstyle=\small]
 if version.to_bytes(1, "little") == b'\x01':
