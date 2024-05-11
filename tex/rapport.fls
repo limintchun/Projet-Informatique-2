@@ -163,6 +163,10 @@ INPUT /usr/local/texlive/2024/texmf-dist/tex/latex/base/omscmr.fd
 INPUT /usr/local/texlive/2024/texmf-dist/tex/latex/base/omscmr.fd
 INPUT /usr/local/texlive/2024/texmf-dist/tex/latex/base/omscmr.fd
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmsy9.tfm
+INPUT ./linesULBMP.png
+INPUT ./linesULBMP.png
+INPUT ./linesULBMP.png
+INPUT ./linesULBMP.png
 INPUT rapport.aux
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb

@@ -62,7 +62,7 @@ def __init__(self, r, g, b):
 Pour la classe Image : 
 
 \begin{lstlisting}[language=Python, basicstyle=\small]
- def __init__(self, width: int, height: int, pixels):
+ def __init__(self, width: int, height: int, pixels: list[Pixel]):
     self.w = width
     self.h = height
     self.img = pixels
@@ -72,14 +72,14 @@ Pour la classe Image :
         if not isinstance(i, Pixel):
 		  raise ValueError("List's elements aren't Pixel instances.")
 
-def __getitem__(self, pos: tuple[int, int]):
+def __getitem__(self, pos: tuple[int, int]) -> Pixel:
     x = pos[0]
     y = pos[1]
     if not (x <= self.w and y <= self.h):
         raise IndexError("Not enough pixels.")
     return self.img[y * self.w + x]
 
-def __setitem__(self, pos: tuple[int, int], pix):
+def __setitem__(self, pos: tuple[int, int], pix)-> None:
     x = pos[0]
     y = pos[1]
     if x < self.w or y < self.h:
@@ -93,7 +93,7 @@ Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à part
 
 
 \subsection{Encoder}
-La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon). Cette méthode sera utiliser pour enregistrer une image, l'une des fonctionnalité visé par le projet.
+La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon). Cette méthode sera utiliser pour enregistrer une image.
 
 La première version de l'\textit{Encoder} permet seulement de convertir des valeurs entières en bits un à un et ensuite l'écrire dans un fichier. Cela est faisable grâce à la fonction \texttt{int.to_bytes}.\footnote{pixels est une liste contenant des éléments de la classe \texttt{Pixel} et get_red(), get_blue() et get_green() sont des méthodes de la classe Pixel qui permettent de récupérer les valeurs RGB d'un pixel.}
 
@@ -103,7 +103,7 @@ bpixels = b''.join([pixel.get_red(),
 	for pixel in pixels)
 \end{lstlisting}
 
-Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $360 \times 480 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 10 pixels identiques, nous utiliserons un byte qui correspondra à 10. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12. En effet, à la place d'avoir une image contenant $10 \times 3 = 30$ bytes (pour 10 pixels dont leurs couleurs sont identiques), nous n'aurons besoin que de $3+1 = 4$ bytes pour encoder les couleurs.
+Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $172800 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 16 pixels identiques, nous utiliserons un byte qui correspondra à 16. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12. En effet, à la place d'avoir une image contenant $16 \times 3 = 48$ bytes (pour 16 pixels dont leurs couleurs sont identiques), nous n'aurons besoin que de $3+1 = 4$ bytes pour encoder les couleurs.
 
 Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Dans ce projet, nous considérerons les profondeurs suivantes : 1, 2, 4, 8 et 24. Notons que si la profondeur vaut 8 ou 24, cela revient à lire 1 octet un par 1, ce qui revient à utiliser l'encodage RLE. De ce fait, la version 3 prend en compte un encodage RLE seulement si la profondeur est de minimum 8.  
 
@@ -123,7 +123,7 @@ def split_string(grouped_pixels: list[str], padding:list[str]) -> bytes:
 	hex_value = bytes([decimal_value])
 	return hex_value
 \end{lstlisting}
-Nous avons également dû implémenter une quatrième  version de l'\textit{Encoder}. L'idée est de regrouper les pixels en fonction de leur différence de couleur. Si par exemple, soit deux pixels : $P_1 = (R_1, G_1, B_1)$ et $P_2 = (R_2, G_2, B_2)$, la différence de couleur entre ces deux pixels est définie comme suit : 
+Nous avons également dû implémenter une quatrième  version de l'\textit{Encoder}. L'idée est de regrouper les pixels en fonction de leur différence de couleur. Prenons pour exemple 2 pixels : $P_1 = (R_1, G_1, B_1)$ et $P_2 = (R_2, G_2, B_2)$, la différence de couleur entre ces deux pixels est définie comme suit : 
 
 \begin{align*}
 		\Delta_R = R_2 - R_1 \\
@@ -171,8 +171,29 @@ def split_into_pixels(bits: str, depth: int) -> list[bytes]:
     return pixels
 \end{lstlisting}
 
+Enfin, la quatrième version du \texttt{Decoder} est la plus complexe. En effet, il faut déterminer les intervalles de valeurs de $\Delta_R$, $\Delta_G$ et $\Delta_B$ pour regrouper les pixels en fonction de leur différence de couleur. Pour cela, une fonction \texttt{delta_colors} qui prend en paramètre deux \texttt{Pixel} a été créée. Elle permet de calculer la différence de couleur entre deux pixels. De plus, plusieurs fonction ont été créées pour vérifier si tel pixel est dans un intervalle de valeurs précis. Par exemple, la fonction \texttt{is_big_difference_g}, qui prend en paramètre la valeurs RGB de la diffférence calculée précédemment, retourne \texttt{True} si la $\Delta_G$ est entre -128 et 127 et si la $\Delta_RG$ et la $\Delta_BG$ sont entre -32 et 31.\footnote{RG et BG signifient qu'il s'agit de la différence entre la couleur rouge et la couleur verte, et entre la couleur bleu et la couleur verte respectivement.}
+
+\begin{lstlisting}[language=Python, basicstyle=\small]
+def is_big_difference_g(r: int, g: int, b: int) -> bool:
+	BIG_DIFF_RANGE = range(-128, 128)
+	BIG_RELATIVE_DIFF_RANGE = range(-32, 32)
+	return g in BIG_DIFF_RANGE 
+		and r in BIG_RELATIVE_DIFF_RANGE 
+		and b in BIG_RELATIVE_DIFF_RANGE 
+
+def delta_colors(color1: Pixel, color2: Pixel) -> tuple[int, int, int]:
+	DR, DG, DB = color2.red - color1.red, 
+		color2.green - color1.green, color2.blue - color1.blue
+	return DR, DG, DB
+\end{lstlisting}
+
 \section{Résultats}
-Naturellement, il est interéssant de comparer les différentes versions du compresseur. Pour ce faire, nous avons utilisé une image de dimension $360 \times 480$ pixels. Nous avons ensuite compressé cette image en utilisant les différentes versions du compresseur. Et voici les résultats obtenus : 
+Naturellement, il est interéssant de comparer les différentes versions du compresseur. Pour ce faire, nous avons utilisé une image de dimension $360 \times 480$ pixels. Nous avons ensuite compressé cette image en utilisant les différentes versions du compresseur. Et voici les résultats obtenus pour l'image suivante appelé lines.ulbmp : 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{linesULBMP}
+\label{fig:lines}
+\end{figure}
 
 
 \section{Conclusion}

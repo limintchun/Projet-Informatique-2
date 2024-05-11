@@ -394,8 +394,7 @@ class Decoder(object):
                 byte_chunk = binary_pixels[i:i + 8]
                 blocs.append(byte_chunk)
 
-            while len(
-                    img) < width * height:  # Comme ma fonction Decoder.split_into_pixels(bytes, bbp) retourne une
+            while len(img) < width * height:  # Comme ma fonction Decoder.split_into_pixels(bytes, bbp) retourne une
                 # liste pour la
                 # phase 4, j'ai fait des manipulations un peu bizarre, j'ai pas trouvé plus optimale désolé
                 if blocs[count].startswith('00'):  # SMALL DIFF
