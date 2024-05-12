@@ -43,9 +43,8 @@ Par ailleurs, il est fondamental de maitriser la manipulation de fichier, de bit
 \section{Méthodes}
 Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image} car elles seront utiles pour la représentation des pixels et des images en Python.
 \subsection{Pixel et Image}
-La classe \textit{Pixel} possède les attributs suivants : r, g, b (ces derniers correspondent aux valeurs RGB d'un pixel). 
-Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
-Par ailleurs, rappelons nous que chaque couleur du pixel est encodée sur 8 bits, ce qui signifie qu'il est impossible d'avoir des valeurs négatives ou supérieures à 255. De plus, une image ne peut pas posséder une quantité de pixel supérieure à la dimension de l'image. Par exemple, si une image a une hauteur de 5 pixels et une largeur de 3 pixels, il est impossible d'accéder au pixel d'indice (6, 2) car il n'existe pas.
+La classe \textit{Pixel} possède les attributs suivants : \texttt{r, g, b}, qui correspondent aux valeurs RGB d'un pixel. Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
+Par ailleurs, rappelons nous que chaque couleur du pixel est encodée sur 8 bits, ce qui signifie qu'il est impossible d'avoir des valeurs négatives ou supérieures à 255. De plus, une image ne peut pas posséder une quantité de pixel supérieure à la dimension de l'image. Par exemple, si une image a une hauteur de 5 pixels et une largeur de 3 pixels, il est impossible d'accéder au pixel d'indice (6, 2) car il est en dehors des limites de l'image.
 
 Voilà pourquoi les constructeurs des classes \textit{Pixel} et \textit{Image} sont définis comme suit :
 
