@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1715419938.97319 "rapport.tex" "rapport.pdf" "rapport" 1715419939.51411 0
+["pdflatex"] 1715524967.22478 "rapport.tex" "rapport.pdf" "rapport" 1715524967.84588 0
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/jknappen/ec/tcrm0900.tfm" 1136768653 1536 c4f439db76ef96a9c53bc437f35ffe20 ""
@@ -71,6 +71,8 @@
   "/usr/local/texlive/2024/texmf-dist/tex/latex/base/omlcmr.fd" 1705352648 2470 ec0f30a4dee212b06d8724b94d7d4f9a ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/base/omscmr.fd" 1705352648 2469 74341109f164f230581718c66211c718 ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo" 1705352648 8448 dbc0dbf4156c0bb9ba01a1c685d3bad0 ""
+  "/usr/local/texlive/2024/texmf-dist/tex/latex/caption/caption.sty" 1696191071 56128 c2ccf1a29d78c33bc553880402e4fb9a ""
+  "/usr/local/texlive/2024/texmf-dist/tex/latex/caption/caption3.sty" 1696191071 72619 ee90b6612147680fd73c3b1406a74245 ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty" 1579991033 13886 d1306dcf79a944f6988e688c1785f9ce ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/etoolbox/etoolbox.sty" 1601931149 46845 3b58f70c6e861a13d927bff09d35ecbc ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/firstaid/underscore-ltx.sty" 1698869629 1901 cdc81720548467dbe3b1f6ac4583afd7 ""
@@ -93,17 +95,18 @@
   "/usr/local/texlive/2024/texmf-dist/tex/latex/listingsutf8/listingsutf8.sty" 1576101256 5148 1baf596b2560b44d9ff1889dc1d7564e ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/parskip/parskip.sty" 1615762720 4288 94714aa7f535440f33181fec52a31963 ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/preprint/fullpage.sty" 1137110595 2789 05b418f78b224ec872f5b11081138605 ""
+  "/usr/local/texlive/2024/texmf-dist/tex/latex/subfig/subfig.sty" 1158586182 21369 9ef165ca6df8815c92e693146a376c92 ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/tools/indentfirst.sty" 1698869629 1618 c5f08dcf49a56107311a81073b35fa4e ""
   "/usr/local/texlive/2024/texmf-dist/tex/latex/underscore/underscore.sty" 1273862289 10722 1e2a550b7f07af2b195b71b3fc7bf3ff ""
   "/usr/local/texlive/2024/texmf-dist/web2c/texmf.cnf" 1708706663 41649 5d6ae549fbbcb850a863f69aa41f3d10 ""
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1713726766.56582 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1713726736 8221420 64f28dd7e781ae88bb64f21f29208ee4 ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "linesULBMP.png" 1715419435.49136 23006 d90269f698535f27e545c7027aa98713 ""
+  "graph.png" 1715523999.43678 19933 ed327a86ac659490496bd877870e82df ""
   "logo.png" 1713528759 352603 994558792ad0783248ce57f16c24e6ae ""
-  "rapport.aux" 1715419939.4681 819 1557bac75ad79999a415b9c9cad8e778 "pdflatex"
-  "rapport.tex" 1715419937.89139 14579 b940e41dd0a36d32d1bbacb86ab028cd ""
-  "rapport.toc" 1715419939.46863 413 8503c8439ba8f3bed8c25c1d47c17b15 "pdflatex"
+  "rapport.aux" 1715524967.79392 978 50d43362827d1085869d75d0db9b87be "pdflatex"
+  "rapport.tex" 1715524966.18265 15726 b8113a8dd1d8156cd78ef5c070c0aeab ""
+  "rapport.toc" 1715524967.7943 413 8503c8439ba8f3bed8c25c1d47c17b15 "pdflatex"
   (generated)
   "rapport.aux"
   "rapport.log"

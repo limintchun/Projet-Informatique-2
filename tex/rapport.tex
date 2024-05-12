@@ -13,6 +13,7 @@
 \usepackage{underscore}
 \usepackage{indentfirst}
 \usepackage{fullpage}
+\usepackage{subfig}
 
 
 \title{Rapport du projet 2 : ULBMP}
@@ -31,16 +32,16 @@
 \tableofcontents
 \newpage
 \section{Introduction}
-Pour le deuxième projet du cours INFO-F-106, nous avons dû implémenter un compresseur d'image appelé ULBMP, basé sur le format BMP, développé par Microsoft dans les années 80.
+Pour le deuxième projet du cours INFO-F-106, nous avons dû implémenter un outil pour encoder ou decoder un fichier de format  ULBMP, basé sur le format BMP, développé par Microsoft dans les années 80.
 
-L'un des objectifs de ce projet est de pouvoir compresser une image. En effet, ce n'est pas efficace de stocker une image de manière brut car elle prendrait trop de place dans le stockage. Prenons l'exemple d'une image de dimension $360 \times 480$. Si chaque pixel est codé sur 3 bytes (un byte pour chaque couleur), cela signifie que l'image prendrait $360 \times 480 \times 3 = 518400$ bytes, soit 518.4 kilo-octets. Nous pourrions se poser la question suivante : comment pouvons-nous réduire la taille de l'image tout en gardant une qualité acceptable ?
+L'un des objectifs de ce projet est de pouvoir compresser une image. En effet, ce n'est pas efficace de stocker une image de manière brut car elle prendrait trop de place dans le stockage. Prenons l'exemple d'une image de dimension $360 \times 480$. Si chaque pixel est codé sur 3 octets (un octet pour chaque couleur), cela signifie que l'image prendrait $360 \times 480 \times 3 = 518400$ octets, soit 518.4 kilo-octets. Nous pourrions nous poser la question suivante : comment pouvons-nous réduire la taille de l'image tout en gardant une qualité acceptable ?
 
-Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque bytes et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est). Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les bytes correspondants aux valeurs RGB de chaque pixel.
+Afin de résoudre ce problème, on va procéder comme suit, nous allons créer une classe \textit{Decoder} et \textit{Encoder}. Le premier permettra, à partir d'un chemain d'accès du fichier, de lire chaque octets et de retourner une \textit{image} (nous définierons plus tard plus précisemment ce que c'est). Le deuxième permettra, à partir d'une \textit{image}, d'écrire dans un fichier les octets correspondants aux valeurs RGB de chaque pixel.
 
-Par ailleurs, il est fondamental de maitriser la manipulation de fichier, de bits (notamment le shifting et le masking), ainsi que la compréhension de la représentation binaire et hexadécimal. En effet, comme nous devons utiliser des pixels, il est important de comprendre que ces derniers sont composées de 3 valeurs : Rouge, Vert, Bleu (RVB ou RGB en anglais). Chacune de ces valeurs est codée sur 8 bits, ce qui signifie que chaque valeur peut prendre $2^8 = 256$ valeurs différentes. De plus, il faut savoir que les bytes du fichiers ULBMP sont encodés en little-endian, cela signifie que les bits de poids faible se trouve au début de la séquence de bits. Il était donc utile d'utiliser le programme \texttt{hexdump} afin de pouvoir visualiser les données hexadécimale.
+Par ailleurs, il est fondamental de maitriser la manipulation de fichier, de bits (notamment le shifting et le masking), ainsi que la compréhension de la représentation binaire et hexadécimal. En effet, comme nous devons utiliser des pixels, il est important de comprendre que ces derniers sont composées de 3 valeurs : Rouge, Vert, Bleu (RVB ou RGB en anglais). Chacune de ces valeurs est codée sur 8 bits, ce qui signifie que chaque valeur peut prendre $2^8 = 256$ valeurs différentes. De plus, il faut savoir que les octets du fichiers ULBMP sont encodés en little-endian, cela signifie que les bits de poids faible se trouve au début de la séquence de bits. Il était donc utile d'utiliser le programme \texttt{hexdump} afin de pouvoir visualiser les données hexadécimale.
 
 \section{Méthodes}
-Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image} car elles seront utiles pour à la représentation des pixels et des images en Python.
+Comme cité dans l'introduction, nous allons devoir implémenter deux classes : \textit{Decoder} et \textit{Encoder}. Mais avant ça, il va falloir définir les classes \textit{Pixel} et \textit{Image} car elles seront utiles pour la représentation des pixels et des images en Python.
 \subsection{Pixel et Image}
 La classe \textit{Pixel} possède les attributs suivants : r, g, b (ces derniers correspondent aux valeurs RGB d'un pixel). 
 Le constructeur \textit{Image} prend en paramètre la hauteur, la largeur de l'image, ainsi qu'une liste de taille $hauteur \times largeur$ comprenant des instances de la classe Pixel.
@@ -95,7 +96,7 @@ Ou bien la fonction \texttt{__setitem__} qui permet de modifier un pixel à part
 \subsection{Encoder}
 La classe \textit{Encoder} possède les attributs suivants : une instance de la classe \textit{Image}, la version du compresseur que nous  voulons utiliser (mis par défaut à 1), et **kwargs. Ce dernier permet de passer des arguments optionnels, tels que la profondeur et une une valeur booléene déterminant l'utilisation de l'encodage RLE (passer à True si nous souhaitons utiliser la encodage RLE, False sinon). Cette méthode sera utiliser pour enregistrer une image.
 
-La première version de l'\textit{Encoder} permet seulement de convertir des valeurs entières en bits un à un et ensuite l'écrire dans un fichier. Cela est faisable grâce à la fonction \texttt{int.to_bytes}.\footnote{pixels est une liste contenant des éléments de la classe \texttt{Pixel} et get_red(), get_blue() et get_green() sont des méthodes de la classe Pixel qui permettent de récupérer les valeurs RGB d'un pixel.}
+La première version de l'\textit{Encoder} permet seulement de convertir des valeurs entières en bits un à un et ensuite l'écrire dans un fichier. Cela est faisable grâce à la fonction \texttt{int.to_bytes}.\footnote{\texttt{pixels} est une liste contenant des éléments de la classe \texttt{Pixel}. \texttt{get_red(), get_blue() et get_green()} sont des méthodes de la classe Pixel qui permettent de récupérer les valeurs RGB d'un pixel.}
 
 \begin{lstlisting}[language=Python, basicstyle=\small]
 bpixels = b''.join([pixel.get_red(), 
@@ -103,9 +104,11 @@ bpixels = b''.join([pixel.get_red(),
 	for pixel in pixels)
 \end{lstlisting}
 
-Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $172800 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 16 pixels identiques, nous utiliserons un byte qui correspondra à 16. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12. En effet, à la place d'avoir une image contenant $16 \times 3 = 48$ bytes (pour 16 pixels dont leurs couleurs sont identiques), nous n'aurons besoin que de $3+1 = 4$ bytes pour encoder les couleurs.
+Cependant, cette méthode n'est pas optimale car elle ne permet pas de compresser l'image. En effet, cette version correspond à l'exemple utilisé dans l'introduction. Pour une image de dimension $360 \times 480$, il y a 172800 pixels, soit $172800 \times 3 = 518400$ bytes. Nous allons donc utiliser l'encodage RLE, notion cité précemment. Ce dernier consiste à remplacer une suite de bits identiques par un seul bit qui correspondra au nombre de répétitions du bit. Dans notre cas, si nous avons une suite de 16 pixels identiques, nous utiliserons un byte qui correspondra à 16. Ainsi, au lieu d'encoder les pixels sur 3 bytes, nous les encoderons sur 4 bytes dont le premier représentera le nombre de répétitions des bits suivants. De cette manière, nous réduisons la taille de l'image d'un facteur 12. En effet, à la place d'avoir une image contenant $16 \times 3 = 48$ octets, nous n'aurons besoin que de $3+1 = 4$ bytes pour encoder les couleurs.
 
-Quant à la profondeur, elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Dans ce projet, nous considérerons les profondeurs suivantes : 1, 2, 4, 8 et 24. Notons que si la profondeur vaut 8 ou 24, cela revient à lire 1 octet un par 1, ce qui revient à utiliser l'encodage RLE. De ce fait, la version 3 prend en compte un encodage RLE seulement si la profondeur est de minimum 8.  
+Néamoins, il y a une limite concernant l'efficacité de l'encodage RLE. Dans le cas où une image possède beaucoup de couleurs différentes, il y aura tout de même 4 bits utilisés pour un seul pixel. Donc si nous reprenons l'exemple utilisé précedemment, il y aurait $480 \times 360 \times 4 = 691200$ octets utilisés.
+
+Voilà pourquoi, la quatrième version permet de choisir la profondeur(ou bits par pixel), elle correspond au nombre de bits utilisés pour encoder chaque couleur d'un pixel. Par exemple, si la profondeur est de 4, cela signifie que chaque couleur d'un pixel est encodée sur 4 bits. Dans ce projet, nous considérerons les profondeurs suivantes : 1, 2, 4, 8 et 24. 
 
 Voici une fonction qui permet de convertir une liste de tuple d'entiers en une chaine de bits grâce à la liste \texttt{padding} qui est la palette de couleurs utilisées.
 \begin{lstlisting}[language=Python, basicstyle=\small]
@@ -181,6 +184,7 @@ def is_big_difference_g(r: int, g: int, b: int) -> bool:
 		and r in BIG_RELATIVE_DIFF_RANGE 
 		and b in BIG_RELATIVE_DIFF_RANGE 
 
+
 def delta_colors(color1: Pixel, color2: Pixel) -> tuple[int, int, int]:
 	DR, DG, DB = color2.red - color1.red, 
 		color2.green - color1.green, color2.blue - color1.blue
@@ -191,12 +195,13 @@ def delta_colors(color1: Pixel, color2: Pixel) -> tuple[int, int, int]:
 Naturellement, il est interéssant de comparer les différentes versions du compresseur. Pour ce faire, nous avons utilisé une image de dimension $360 \times 480$ pixels. Nous avons ensuite compressé cette image en utilisant les différentes versions du compresseur. Et voici les résultats obtenus pour l'image suivante appelé lines.ulbmp : 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{linesULBMP}
-\label{fig:lines}
+\includegraphics[width=0.5\textwidth]{graph.png}
+\label{fig:graphique}
 \end{figure}
 
-
+Comme nous pouvons le constater, la version 1.0 est la moins efficace en terme de compression. En effet, elle ne compresse pas l'image, elle se contente de l'écrire dans un fichier. De plus, lorsque nous choisissons de compresser en utilisant une profondeur de 24 bits par pixels, la taille du fichier est plus grande que si nous n'utilisions pas de compression.
 \section{Conclusion}
+Ce projet nous a permis de mieux comprendre le fonctionnement des images et des pixels. Nous avons pu voir que les images sont composées de pixels qui sont eux-mêmes composés de valeurs RGB. Nous avons également pu voir que les images peuvent être compressées en utilisant l'encodage RLE. Cela permet de réduire la taille de l'image tout en gardant une qualité acceptable. Enfin, nous avons pu voir que la profondeur des pixels est un paramètre important à prendre en compte lors de la compression d'une image. En effet, plus la profondeur est grande, plus la taille de l'image sera grande.
 
 
 
