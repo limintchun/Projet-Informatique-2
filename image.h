@@ -7,7 +7,8 @@
 
 class Image {
 private:
-    int width, height, size;
+    int width, height;
+    int size;
     std::vector<Pixel>pixels; 
 public:
     // constructeur
@@ -19,8 +20,11 @@ public:
     bool operator==(const Image& image) const;
 
     Pixel& operator[](int idx[2]);
-    const Pixel& operator[](size_t idx) const;
+    const Pixel& operator[](int idx) const;
 
+    int getHeight();
+    int getWidth();
+    std::vector<Pixel>getPixel();
 };
 
 #endif // !IMAGE_H

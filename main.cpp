@@ -21,8 +21,11 @@ int main() {
     std::vector<Pixel>vec = {pixel, pix};
     Image image(1, 2, vec);
     
-    for (int i = 0; i < vec.size(); i++) {
+    for (long unsigned int i = 0; i < vec.size(); i++) {
         std::cout << vec[i].getRed(vec[i]) << std::endl;
     }
+    std::cout << image.getWidth() << std::endl;
+    std::cout << image.getHeight() << std::endl;
+    // std::cout << image.getPixel() << std::endl;
     return 0;
 }

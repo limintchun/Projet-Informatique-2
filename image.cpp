@@ -40,7 +40,7 @@ Pixel& Image::operator[](int idx[2]) {
     return pixels[y * width + x];
 }
 
-const Pixel& Image::operator[](size_t idx) const{
+const Pixel& Image::operator[](int idx) const{
     if (idx >= size) {
         std::cerr << "La position n'est pas valide" << std::endl;
         exit(1);
@@ -48,3 +48,14 @@ const Pixel& Image::operator[](size_t idx) const{
     return pixels[idx];
 }
 
+int Image::getHeight() {
+    return this->height;
+}
+
+int Image::getWidth() {
+    return this->width;
+}
+
+std::vector<Pixel> Image::getPixel() {
+    return this->pixels;
+}
